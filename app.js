@@ -1,9 +1,8 @@
-// app.js - AXP Kinematic_Hologram (v5.6 Optical Grade & Full Fidelity)
+// app.js - AXP Kinematic_Hologram (v5.7 Optical Grade & Full Fidelity - SILO Enabled)
 
 const container = document.getElementById('canvas-container');
 const fileUpload = document.getElementById('gltf-upload'); 
 const modelSelect = document.getElementById('model-select');
-const playAnimBtn = document.getElementById('play-anim-btn'); 
 const prismSlider = document.getElementById('prism-slider');
 const glassesSelect = document.getElementById('glasses-select');
 const lineWidthSlider = document.getElementById('line-width-slider'); 
@@ -20,9 +19,7 @@ const loadingText = document.getElementById('loading-text');
 // ==========================================
 // AXP 工程專用：UI 狀態強制初始化 (確保滑桿與 code 同步)
 // ==========================================
-// 依照需求，強制設定光學線條粗細預設為 2.0
 lineWidthSlider.value = "2.0";
-// 確保稜鏡與色彩滑桿在 startup 時位於正位
 prismSlider.value = "0.0";
 redSlider.value = "50";
 blueSlider.value = "50";
@@ -39,13 +36,13 @@ let savedVPrism = 0.0;
 let isZeroedOut = false; 
 
 // ==========================================
-// 0. 動態注入：頻閃防抑制 UI 面板
+// 0. 動態注入：頻閃防抑制 UI 面板 (更名為：去抑制閃頻)
 // ==========================================
 const flickerDiv = document.createElement('div');
 flickerDiv.className = 'slider-group';
 flickerDiv.style.cssText = 'background: rgba(248, 113, 113, 0.15); padding: 12px; border-radius: 6px; border-left: 3px solid #f87171; margin-top: 15px;';
 flickerDiv.innerHTML = `
-    <h4 style="margin:0 0 8px 0; color:#f87171; font-size:13px;">⚡ 交替頻閃 (Anti-Suppression)</h4>
+    <h4 style="margin:0 0 8px 0; color:#f87171; font-size:13px;">⚡ 去抑制閃頻 (Anti-Suppression)</h4>
     <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:#cbd5e1; margin-bottom:8px;">
         <span>狀態: <span id="flicker-status" style="color:#94a3b8;">關閉 [Z 鍵]</span></span>
         <span>頻率: <span id="flicker-hz-val">4.0 Hz</span></span>
@@ -102,7 +99,6 @@ saasModelLibrary.forEach(modelName => {
     modelSelect.add(new Option(`☁️ 雲端解析: ${modelName.replace('.glb', '')}`, modelName));
 });
 
-// 光學安全參數設定
 const PRISM_LIMITS = { BI: -6.0, BO: 40.0, BU_BD: 2.0 };
 prismSlider.min = PRISM_LIMITS.BI;
 prismSlider.max = PRISM_LIMITS.BO;
@@ -182,7 +178,6 @@ postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMaterial));
 // 4. AXP 材質設定與線條優化
 // ==========================================
 const matSolid = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.8, depthWrite: true });
-// 🚀 回歸安全預設值 2.0
 const matLine = new THREE.LineMaterial({ color: 0xffffff, linewidth: 2.0, transparent: true, opacity: 1.0, resolution: new THREE.Vector2(window.innerWidth * dpr, window.innerHeight * dpr) });
 
 let activeMecha = new THREE.Group(); scene.add(activeMecha);
@@ -195,7 +190,6 @@ const loader = new THREE.GLTFLoader();
 function createMechaPart(geometry) {
     const group = new THREE.Group();
     const mesh = new THREE.Mesh(geometry, matSolid);
-    // 🚀 復原閥值 15：保留所有幾何細節，增強空間融合錨點
     const edges = new THREE.EdgesGeometry(geometry, 15); 
     const lines = new THREE.LineSegments2(new THREE.LineSegmentsGeometry().fromEdgesGeometry(edges), matLine);
     group.add(mesh); group.add(lines); return group;
@@ -272,7 +266,7 @@ function buildNativeMecha() {
 }
 
 // ==========================================
-// 6. 外部 GLB 無塵室正規化 (全網格細節復原)
+// 6. 外部 GLB 無塵室正規化
 // ==========================================
 fileUpload.addEventListener('change', (e) => {
     const files = e.target.files;
@@ -305,7 +299,6 @@ function applyHologramOptics(modelGroup) {
             mesh.material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, skinning: true, transparent: true, opacity: 0.6 });
         } else {
             mesh.material = matSolid;
-            // 🚀 復原閥值 15：原汁原味呈現 GLB 所有模型細節
             const edges = new THREE.EdgesGeometry(mesh.geometry, 15); 
             
             const lineGeo = new THREE.LineSegmentsGeometry().fromEdgesGeometry(edges);
@@ -400,17 +393,10 @@ function loadNewModel(modelName) {
     );
 }
 
-playAnimBtn.addEventListener('click', () => {
-    if (activeActions.length === 0 && procMecha === null) return;
-    activeActions.forEach(action => { action.reset(); action.play(); });
-    loadingText.innerText = "⚡ 已強制作動：所有動力軌道重置完畢！"; loadingText.style.color = "#4ade80";
-    setTimeout(() => { loadingText.innerText = "系統已就緒。"; loadingText.style.color = "#facc15"; }, 2000);
-});
-
 modelSelect.addEventListener('change', (e) => loadNewModel(e.target.value));
 
 // ==========================================
-// 7. UI 對接、光學稜鏡與動態 SILO 感知
+// 7. UI 對接、光學稜鏡與動態 SILO 感知 (保留 SILO 綁定)
 // ==========================================
 function updateOptics() {
     let prismVal = parseFloat(prismSlider.value); 
@@ -468,6 +454,7 @@ function updateOptics() {
     const vShift = (currentVPrism * workDistanceMeters) / screenHeightCm; 
     postMaterial.uniforms.prismOffset.value.set(hShift / 2.0, vShift / 2.0); 
 
+    // 🌟 核心戰略：保留臨床精密 SILO 認知演算法 (BI影像放大，BO影像縮小)
     let siloScale = 1.0; 
     let siloZ = 0;
     if (prismVal > 0) { 
@@ -487,7 +474,7 @@ function updateOptics() {
 glassesSelect.addEventListener('change', updateOptics);
 
 // ==========================================
-// 8. 🚀 快捷鍵與 Kinematic 控制系統
+// 8. 🚀 快捷鍵與 Kinematic 控制系統 (無限縮放與一鍵 Enter 還原)
 // ==========================================
 document.addEventListener('keydown', (e) => {
     if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
@@ -504,10 +491,26 @@ document.addEventListener('keydown', (e) => {
         const panel = document.querySelector('.control-panel');
         if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; 
     } else if (e.code === 'KeyM') {
-        customScaleMultiplier = Math.min(5.0, customScaleMultiplier + 0.2);
+        customScaleMultiplier += 0.2; // 🌟 解放上限，無限放大
         updateOptics();
     } else if (e.code === 'KeyN') {
-        customScaleMultiplier = Math.max(1.0, customScaleMultiplier - 0.2);
+        customScaleMultiplier = Math.max(0.1, customScaleMultiplier - 0.2); // 🌟 解放下限，保留0.1防消失
+        updateOptics();
+    } else if (e.code === 'Enter') {
+        // 🎯 終極重置功能：按下 Enter 瞬間歸位所有臨床與光學參數
+        isZeroedOut = false;
+        savedHPrism = 0.0;
+        savedVPrism = 0.0;
+        currentVPrism = 0.0;
+        prismSlider.value = 0.0;
+        customScaleMultiplier = 1.0;
+        lineWidthSlider.value = "2.0";
+        speedSlider.value = 1.0;
+        if (document.getElementById('speed-val')) document.getElementById('speed-val').innerText = '1.0x';
+        redSlider.value = 50;
+        blueSlider.value = 50;
+        greenSlider.value = 50;
+        hueTuneSlider.value = 0;
         updateOptics();
     } else if (e.code === 'KeyZ') {
         isFlickerActive = !isFlickerActive;

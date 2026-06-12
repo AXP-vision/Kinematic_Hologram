@@ -12,30 +12,31 @@
 
     <div id="ui">
         <div id="hud-header">
-            <h1>AXP KINEMATIC HOLOGRAM <span>[v4.1]</span></h1>
-            <div class="hotkey-hint">
-                ⌨️ 快捷指令: [ Q ] 全螢幕 | [ E ] 隱藏儀表板 | [ M/N ] 縮放(1X-5X) | [ Space ] 暫停 | [ , / . ] 瞬間歸零/復原 | [ ← → ] BI/BO 爆發
+            <h1>AXP KINEMATIC HOLOGRAM <span style="display: none;">[v4.1]</span></h1>
             </div>
-        </div>
 
         <div class="control-panel">
             
             <div class="slider-group">
-                <label>📁 雲端/本地動力模型庫</label>
+                <label>📁 雲端模型庫</label>
                 <select id="model-select"></select>
             </div>
 
             <div class="slider-group">
-                <label>📤 載入外部自訂 GLB 模型</label>
+                <label>📤 載入其他模型</label>
                 <input type="file" id="gltf-upload" accept=".glb,.gltf" multiple>
             </div>
 
             <div class="slider-group" id="speed-group" style="display:none;">
-                <label>⚙️ 步態頻率 (Procedural Speed) <span id="speed-val">1.0x</span></label>
+                <label>⚙️ 動態速度 <span id="speed-val">1.0x</span></label>
                 <input type="range" id="speed-slider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="document.getElementById('speed-val').innerText = this.value + 'x'">
             </div>
 
-            <button id="play-anim-btn">⚡ 強制重置/作動所有動力軌道</button>
+            <div class="slider-group">
+                <label>📐 光學線條銳利度 <span id="line-width-val">2.0</span></label>
+                <input type="range" id="line-width-slider" min="1.0" max="6.0" step="0.5" value="2.0">
+            </div>
+
             <div id="loading-text">系統初始化中...</div>
 
             <hr>
@@ -84,15 +85,8 @@
                     <input type="range" id="hue-tune-slider" min="-30" max="30" value="0">
                 </div>
             </div>
-
-            <hr>
-
-            <div class="slider-group">
-                <label>📐 光學線條銳利度 (Line Width) <span id="line-width-val">2.0</span></label>
-                <input type="range" id="line-width-slider" min="1.0" max="6.0" step="0.5" value="2.0">
-            </div>
             
-        </div>
+            </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
