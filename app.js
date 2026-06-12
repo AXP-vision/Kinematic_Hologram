@@ -1,4 +1,4 @@
-// app.js - AXP Kinematic_Hologram (v5.7 Optical Grade & Full Fidelity - SILO Enabled)
+// app.js - AXP Kinematic_Hologram (v5.9 Universal Speed & SILO Enabled)
 
 const container = document.getElementById('canvas-container');
 const fileUpload = document.getElementById('gltf-upload'); 
@@ -17,13 +17,14 @@ const blueGroup = document.getElementById('blue-group');
 const loadingText = document.getElementById('loading-text');
 
 // ==========================================
-// AXP 工程專用：UI 狀態強制初始化 (確保滑桿與 code 同步)
+// AXP 工程專用：UI 狀態強制初始化
 // ==========================================
 lineWidthSlider.value = "2.0";
 prismSlider.value = "0.0";
 redSlider.value = "50";
 blueSlider.value = "50";
 greenSlider.value = "50";
+speedSlider.value = "1.0"; // 確保速度預設值為 1.0
 
 // 全域狀態控制
 let isPaused = false;
@@ -36,7 +37,7 @@ let savedVPrism = 0.0;
 let isZeroedOut = false; 
 
 // ==========================================
-// 0. 動態注入：頻閃防抑制 UI 面板 (更名為：去抑制閃頻)
+// 0. 動態注入：去抑制閃頻 UI 面板
 // ==========================================
 const flickerDiv = document.createElement('div');
 flickerDiv.className = 'slider-group';
@@ -64,7 +65,7 @@ flickerHzSlider.addEventListener('input', (e) => {
 });
 
 // ==========================================
-// 1. SaaS 雲端清單同步 (2026 XDR 顯示器高階模型庫)
+// 1. SaaS 雲端模型庫
 // ==========================================
 const saasModelLibrary = [
     "Animal_Cat.glb",
@@ -99,6 +100,7 @@ saasModelLibrary.forEach(modelName => {
     modelSelect.add(new Option(`☁️ 雲端解析: ${modelName.replace('.glb', '')}`, modelName));
 });
 
+// 光學安全參數設定
 const PRISM_LIMITS = { BI: -6.0, BO: 40.0, BU_BD: 2.0 };
 prismSlider.min = PRISM_LIMITS.BI;
 prismSlider.max = PRISM_LIMITS.BO;
@@ -107,7 +109,7 @@ let currentVPrism = 0.0;
 let baseScaleFactor = 1.0; 
 
 // ==========================================
-// 2. 基礎場景與渲染器 (MBP 16" XDR 最佳化)
+// 2. 基礎場景與渲染器
 // ==========================================
 const dpr = window.devicePixelRatio || 1.0;
 
@@ -126,7 +128,7 @@ controls.enableDamping = true;
 controls.target.set(0, 15, 0);
 
 // ==========================================
-// 3. 視光平行相機與 Custom Shader (光學級紅藍分離)
+// 3. 視光平行相機與 Custom Shader
 // ==========================================
 const cameraL = new THREE.PerspectiveCamera();
 const cameraR = new THREE.PerspectiveCamera();
@@ -185,7 +187,7 @@ let mixers = []; let activeActions = []; let procMecha = null;
 const loader = new THREE.GLTFLoader();
 
 // ==========================================
-// 5. 原生程序化機甲工廠 (全網格細節復原)
+// 5. 原生程序化機甲工廠
 // ==========================================
 function createMechaPart(geometry) {
     const group = new THREE.Group();
@@ -266,7 +268,7 @@ function buildNativeMecha() {
 }
 
 // ==========================================
-// 6. 外部 GLB 無塵室正規化
+// 6. 外部 GLB 載入與全域速度解鎖
 // ==========================================
 fileUpload.addEventListener('change', (e) => {
     const files = e.target.files;
@@ -300,7 +302,6 @@ function applyHologramOptics(modelGroup) {
         } else {
             mesh.material = matSolid;
             const edges = new THREE.EdgesGeometry(mesh.geometry, 15); 
-            
             const lineGeo = new THREE.LineSegmentsGeometry().fromEdgesGeometry(edges);
             const line = new THREE.LineSegments2(lineGeo, matLine);
             line.frustumCulled = false; 
@@ -314,8 +315,10 @@ function loadNewModel(modelName) {
     mixers = []; activeActions = []; procMecha = null;
     customScaleMultiplier = 1.0; 
     
+    // 🌟 核心修復：無論是原生機甲還是外部模型，強制顯示動態速度滑桿！
+    if (speedGroup) speedGroup.style.display = 'block'; 
+
     if (modelName === 'procedural') {
-        speedGroup.style.display = 'block';
         camera.position.set(0, 15, 270);
         baseScaleFactor = 1.0; 
         procMecha = buildNativeMecha();
@@ -325,7 +328,6 @@ function loadNewModel(modelName) {
         updateOptics(); return;
     }
 
-    speedGroup.style.display = 'none'; 
     camera.position.set(0, 20, 80); 
     loadingText.innerText = `準備解析模組...`; loadingText.style.color = "#facc15";
 
@@ -396,7 +398,7 @@ function loadNewModel(modelName) {
 modelSelect.addEventListener('change', (e) => loadNewModel(e.target.value));
 
 // ==========================================
-// 7. UI 對接、光學稜鏡與動態 SILO 感知 (保留 SILO 綁定)
+// 7. UI 對接、光學稜鏡與動態 SILO 感知
 // ==========================================
 function updateOptics() {
     let prismVal = parseFloat(prismSlider.value); 
@@ -454,7 +456,6 @@ function updateOptics() {
     const vShift = (currentVPrism * workDistanceMeters) / screenHeightCm; 
     postMaterial.uniforms.prismOffset.value.set(hShift / 2.0, vShift / 2.0); 
 
-    // 🌟 核心戰略：保留臨床精密 SILO 認知演算法 (BI影像放大，BO影像縮小)
     let siloScale = 1.0; 
     let siloZ = 0;
     if (prismVal > 0) { 
@@ -474,7 +475,7 @@ function updateOptics() {
 glassesSelect.addEventListener('change', updateOptics);
 
 // ==========================================
-// 8. 🚀 快捷鍵與 Kinematic 控制系統 (無限縮放與一鍵 Enter 還原)
+// 8. 快捷鍵與 Kinematic 控制系統 
 // ==========================================
 document.addEventListener('keydown', (e) => {
     if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
@@ -482,7 +483,8 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'KeyQ') {
         if (!document.fullscreenElement) {
             document.body.requestFullscreen().then(() => {
-                document.getElementById('hud-header').style.display = 'none';
+                const hud = document.getElementById('hud-header');
+                if (hud) hud.style.display = 'none';
             }).catch(() => {});
         } else {
             document.exitFullscreen();
@@ -491,13 +493,12 @@ document.addEventListener('keydown', (e) => {
         const panel = document.querySelector('.control-panel');
         if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; 
     } else if (e.code === 'KeyM') {
-        customScaleMultiplier += 0.2; // 🌟 解放上限，無限放大
+        customScaleMultiplier += 0.2; 
         updateOptics();
     } else if (e.code === 'KeyN') {
-        customScaleMultiplier = Math.max(0.1, customScaleMultiplier - 0.2); // 🌟 解放下限，保留0.1防消失
+        customScaleMultiplier = Math.max(0.1, customScaleMultiplier - 0.2); 
         updateOptics();
     } else if (e.code === 'Enter') {
-        // 🎯 終極重置功能：按下 Enter 瞬間歸位所有臨床與光學參數
         isZeroedOut = false;
         savedHPrism = 0.0;
         savedVPrism = 0.0;
@@ -556,12 +557,13 @@ prismSlider.addEventListener('input', (e) => {
 
 document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
-        document.getElementById('hud-header').style.display = 'block';
+        const hud = document.getElementById('hud-header');
+        if (hud) hud.style.display = 'block';
     }
 });
 
 // ==========================================
-// 9. 動畫與視光專屬平行相機渲染迴圈
+// 9. 動畫與視光專屬平行相機渲染迴圈 (全域變速核心)
 // ==========================================
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight; 
@@ -583,25 +585,33 @@ function animate() {
         globalTime += delta;
         controls.update();
         
+        // 🌟 核心變更：在此抓取動態速度滑桿的數值
+        const walkSpeed = parseFloat(speedSlider.value); 
+
         if (procMecha) {
-            const walkSpeed = parseFloat(speedSlider.value); const t = globalTime * walkSpeed;
+            const t = globalTime * walkSpeed;
             procMecha.root.position.y = 15 + Math.abs(Math.sin(t)) * 3.5;
             procMecha.shoulderL.rotation.x = Math.sin(t) * 0.7; procMecha.shoulderR.rotation.x = -Math.sin(t) * 0.7;
             procMecha.thighL.rotation.x = -Math.sin(t) * 0.7; procMecha.thighR.rotation.x = Math.sin(t) * 0.7;
             procMecha.calfL.rotation.x = Math.max(0, Math.cos(t)) * 1.0; procMecha.calfR.rotation.x = Math.max(0, -Math.cos(t)) * 1.0;
             procMecha.torso.rotation.y = Math.sin(t) * 0.08; procMecha.head.rotation.y = Math.sin(t * 0.5) * 0.15;
             procMecha.wingL.rotation.y = -0.3 + Math.sin(t * 0.5) * 0.1; procMecha.wingR.rotation.y = 0.3 - Math.sin(t * 0.5) * 0.1;
-            activeMecha.rotation.y = globalTime * 0.3; 
+            activeMecha.rotation.y = globalTime * 0.3 * walkSpeed; // 讓旋轉也跟著變速
         } 
         else {
-            mixers.forEach(mixer => mixer.update(delta));
+            // 🌟 核心變更：將外部 GLB 模型的動畫播放速度乘上 walkSpeed
+            mixers.forEach(mixer => mixer.update(delta * walkSpeed));
+            
             if(mixers.length === 0 && activeMecha.children.length > 0) {
-                const hoverY = Math.sin(globalTime * 1.5) * 1.2; const swayX  = Math.sin(globalTime * 0.8) * 0.03; 
+                // 如果模型沒有內建動畫，它的懸浮與旋轉也受速度滑桿控制
+                const t = globalTime * walkSpeed;
+                const hoverY = Math.sin(t * 1.5) * 1.2; 
+                const swayX  = Math.sin(t * 0.8) * 0.03; 
                 activeMecha.position.y = hoverY; activeMecha.rotation.x = swayX;
-                activeMecha.rotation.y += 0.005; 
+                activeMecha.rotation.y += (0.005 * walkSpeed); 
             } else if (mixers.length > 0) {
                 activeMecha.position.y = 0; activeMecha.rotation.x = 0;
-                activeMecha.rotation.y = Math.sin(globalTime * 0.1) * 0.1;
+                activeMecha.rotation.y = Math.sin(globalTime * walkSpeed * 0.1) * 0.1;
             }
         }
     }
