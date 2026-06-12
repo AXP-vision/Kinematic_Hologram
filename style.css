@@ -1,0 +1,266 @@
+/* style.css - AXP Hybrid Engine v3.3 (Medical HUD 醫療級全息儀表板 - 純淨優化版) */
+
+/* =========================================
+   0. 全域變數定義 (CSS Variables)
+========================================= */
+:root {
+    --color-bg-dark: #000000;
+    --color-panel-bg: rgba(15, 23, 42, 0.75);
+    --color-text-main: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    
+    --color-accent-green: #4ade80;
+    --color-accent-blue: #3b82f6;
+    --color-accent-blue-hover: #60a5fa;
+    --color-warning-yellow: #facc15;
+    
+    /* 確保光學分離的絕對安全與跨平台相容性 */
+    --color-optic-red: #FF0000;
+    --color-optic-green: #00FF00;
+    --color-optic-blue: #0000FF;
+
+    --border-light: rgba(255, 255, 255, 0.1);
+    --border-focus: rgba(74, 222, 128, 0.5);
+}
+
+/* =========================================
+   1. 基礎與重置 (Base & Reset)
+========================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow: hidden; 
+    background-color: var(--color-bg-dark);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+    color: var(--color-text-main);
+    user-select: none; 
+    /* Mac 專屬：醫療級次像素平滑，提升 HUD 銳利度降低視覺疲勞 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1; 
+}
+
+/* =========================================
+   2. 抬頭顯示器排版 (HUD Layout)
+========================================= */
+#ui {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    z-index: 10; 
+    pointer-events: none; 
+}
+
+#ui h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #f8fafc;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    margin-bottom: 4px;
+}
+
+#ui h1 span {
+    font-size: 14px; 
+    color: var(--color-accent-green); 
+    text-shadow: none;
+    vertical-align: middle;
+}
+
+.hotkey-hint {
+    color: #cbd5e1; 
+    font-weight: bold; 
+    background: rgba(0,0,0,0.5); 
+    padding: 6px 10px; 
+    border-radius: 4px; 
+    display: inline-block;
+    font-size: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-light);
+}
+
+/* =========================================
+   3. 核心控制面板 (Control Panel) - 琉璃擬物特效
+========================================= */
+.control-panel {
+    pointer-events: auto; 
+    background: var(--color-panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-light);
+    border-left: 4px solid var(--color-accent-green);
+    border-radius: 8px;
+    padding: 20px;
+    width: 340px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.control-panel::-webkit-scrollbar { width: 6px; }
+.control-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 4px; }
+.control-panel::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+.control-panel::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* =========================================
+   4. 表單群組與專屬視覺區塊
+========================================= */
+.slider-group { margin-bottom: 12px; }
+.slider-group label {
+    display: flex; justify-content: space-between; font-size: 13px;
+    font-weight: 600; color: #cbd5e1; margin-bottom: 6px; letter-spacing: 0.5px;
+}
+
+hr { border: 0; border-top: 1px solid var(--border-light); margin: 16px 0; }
+
+.prism-box {
+    background: rgba(59, 130, 246, 0.15); 
+    padding: 12px; 
+    border-radius: 6px; 
+    border-left: 3px solid var(--color-accent-blue);
+}
+
+.prism-labels {
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 11px; 
+    color: var(--color-text-muted); 
+    margin-bottom: 6px; 
+    font-weight: bold;
+}
+
+.prism-footer {
+    font-size: 10px; 
+    color: #cbd5e1; 
+    margin-top: 8px; 
+    display: flex; 
+    justify-content: space-between;
+}
+
+.ghosting-box {
+    background: rgba(255, 255, 255, 0.05); 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin-top: 15px; 
+    border-left: 3px solid var(--color-warning-yellow);
+}
+
+.ghosting-box h4 {
+    margin: 0 0 10px 0; 
+    color: var(--color-warning-yellow); 
+    font-size: 13px;
+}
+
+#loading-text {
+    color: var(--color-warning-yellow); 
+    font-weight: bold; 
+    text-align: center; 
+    margin-top: 15px; 
+    font-size: 12px;
+    animation: pulse 2s infinite;
+}
+
+#play-anim-btn {
+    width: 100%; 
+    padding: 10px; 
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+    color: white; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    transition: transform 0.1s; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* =========================================
+   5. 下拉選單與上傳按鈕
+========================================= */
+select {
+    width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.6) !important;
+    color: var(--color-accent-green) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 6px !important; font-family: inherit; font-size: 13px; font-weight: bold;
+    outline: none; cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease; appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234ade80%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+    background-repeat: no-repeat !important; background-position: right 10px top 50% !important; background-size: 10px auto !important;
+}
+
+select:hover, select:focus {
+    border-color: var(--color-accent-green) !important;
+    box-shadow: 0 0 8px var(--border-focus);
+}
+
+input[type="file"] { font-size: 12px; }
+input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, var(--color-accent-blue) 0%, #2563eb 100%);
+    border: none; border-radius: 4px; color: white; padding: 8px 12px;
+    font-weight: bold; cursor: pointer; margin-right: 10px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+input[type="file"]::file-selector-button:hover { background: linear-gradient(135deg, var(--color-accent-blue-hover) 0%, var(--color-accent-blue) 100%); }
+input[type="file"]::file-selector-button:active { transform: scale(0.97); }
+
+/* =========================================
+   6. 滑桿客製化 (跨瀏覽器支援)
+========================================= */
+input[type="range"] {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    width: 100%; background: transparent; margin: 8px 0;
+}
+
+input[type="range"]:focus { outline: none; }
+
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%; height: 6px; cursor: pointer; background: #334155; border-radius: 3px; border: 1px solid #1e293b;
+}
+
+input[type="range"]::-moz-range-track {
+    width: 100%; height: 6px; cursor: pointer; background: #334155; border-radius: 3px; border: 1px solid #1e293b;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    height: 16px; width: 16px; border-radius: 50%; background: #f8fafc; cursor: pointer;
+    -webkit-appearance: none; margin-top: -6px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    border: 2px solid #94a3b8; transition: transform 0.1s ease, background 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+    height: 16px; width: 16px; border-radius: 50%; background: #f8fafc; cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.8); border: 2px solid #94a3b8; transition: transform 0.1s ease, background 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); background: #ffffff; }
+input[type="range"]::-moz-range-thumb:hover { transform: scale(1.2); background: #ffffff; }
+
+#red-slider::-webkit-slider-thumb { border-color: var(--color-optic-red); background: #ffe5e5; }
+#red-slider::-moz-range-thumb { border-color: var(--color-optic-red); background: #ffe5e5; }
+
+#green-slider::-webkit-slider-thumb { border-color: var(--color-optic-green); background: #e5ffe5; }
+#green-slider::-moz-range-thumb { border-color: var(--color-optic-green); background: #e5ffe5; }
+
+#blue-slider::-webkit-slider-thumb { border-color: var(--color-optic-blue); background: #e5e5ff; }
+#blue-slider::-moz-range-thumb { border-color: var(--color-optic-blue); background: #e5e5ff; }
+
+#hue-tune-slider::-webkit-slider-thumb { border-color: var(--color-warning-yellow); }
+#hue-tune-slider::-moz-range-thumb { border-color: var(--color-warning-yellow); }
+
+/* =========================================
+   7. 動畫特效
+========================================= */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}

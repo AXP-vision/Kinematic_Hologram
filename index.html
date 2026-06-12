@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AXP Kinematic Hologram</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui">
+        <div id="hud-header">
+            <h1>AXP KINEMATIC HOLOGRAM <span>[v4.1]</span></h1>
+            <div class="hotkey-hint">
+                ⌨️ 快捷指令: [ Q ] 全螢幕 | [ E ] 隱藏儀表板 | [ M/N ] 縮放(1X-5X) | [ Space ] 暫停 | [ , / . ] 瞬間歸零/復原 | [ ← → ] BI/BO 爆發
+            </div>
+        </div>
+
+        <div class="control-panel">
+            
+            <div class="slider-group">
+                <label>📁 雲端/本地動力模型庫</label>
+                <select id="model-select"></select>
+            </div>
+
+            <div class="slider-group">
+                <label>📤 載入外部自訂 GLB 模型</label>
+                <input type="file" id="gltf-upload" accept=".glb,.gltf" multiple>
+            </div>
+
+            <div class="slider-group" id="speed-group" style="display:none;">
+                <label>⚙️ 步態頻率 (Procedural Speed) <span id="speed-val">1.0x</span></label>
+                <input type="range" id="speed-slider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="document.getElementById('speed-val').innerText = this.value + 'x'">
+            </div>
+
+            <button id="play-anim-btn">⚡ 強制重置/作動所有動力軌道</button>
+            <div id="loading-text">系統初始化中...</div>
+
+            <hr>
+
+            <div class="prism-box">
+                <div class="prism-labels">
+                    <span>Base-In (BI) 散開</span>
+                    <span>Base-Out (BO) 聚合</span>
+                </div>
+                <input type="range" id="prism-slider" step="0.1" value="0.0">
+                <div class="prism-footer">
+                    <span>當前稜鏡需求量:</span>
+                    <strong id="prism-val" style="color: #60a5fa; font-size: 13px;">0.0 Δ (平光)</strong>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="slider-group">
+                <label>👓 濾光鏡模式 (Anaglyph Filter)</label>
+                <select id="glasses-select">
+                    <option value="rb">🔴 🔵 紅藍眼鏡 (Red/Blue)</option>
+                    <option value="rg">🔴 🟢 紅綠眼鏡 (Red/Green)</option>
+                </select>
+            </div>
+
+            <div class="slider-group">
+                <label>🔴 右眼抑制解除強度 (Red) <span id="r-val">50%</span></label>
+                <input type="range" id="red-slider" min="0" max="100" value="50">
+            </div>
+
+            <div class="slider-group" id="blue-group">
+                <label>🔵 左眼抑制解除強度 (Blue) <span id="b-val">50%</span></label>
+                <input type="range" id="blue-slider" min="0" max="100" value="50">
+            </div>
+
+            <div class="slider-group" id="green-group" style="display: none;">
+                <label>🟢 左眼抑制解除強度 (Green) <span id="g-val">50%</span></label>
+                <input type="range" id="green-slider" min="0" max="100" value="50">
+            </div>
+
+            <div class="ghosting-box">
+                <h4>🎛️ 光學防鬼影微調 (Anti-Crosstalk)</h4>
+                <div class="slider-group" style="margin-bottom: 0;">
+                    <label style="font-size: 11px;">色相頻率偏移 (Hue Shift) <span id="hue-tune-val">0</span></label>
+                    <input type="range" id="hue-tune-slider" min="-30" max="30" value="0">
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="slider-group">
+                <label>📐 光學線條銳利度 (Line Width) <span id="line-width-val">2.0</span></label>
+                <input type="range" id="line-width-slider" min="1.0" max="6.0" step="0.5" value="2.0">
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/lines/LineSegmentsGeometry.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/lines/LineGeometry.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/lines/LineMaterial.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/lines/LineSegments2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/lines/Line2.js"></script>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
